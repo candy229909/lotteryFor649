@@ -1,68 +1,41 @@
 import itertools
 import random
-import math
 
-# 定義組
-groups = [list(range(1 + i * 7, 8 + i * 7)) for i in range(7)]
+# 定義覆蓋設計參數
+v = 49  # 總號碼數
+k = 6   # 每次選擇的號碼數
+t = 3   # 保證至少匹配的號碼數
 
-# 計算每組中的組合
-def calculate_group_combinations(group, k):
-    return list(itertools.combinations(group, k))
+# 生成所有可能的k組合
+all_combinations = list(itertools.combinations(range(1, v + 1), k))
 
-# 計算總組合
-def calculate_total_combinations(groups, k):
-    total_combinations = []
-    for group in groups:
-        total_combinations.extend(calculate_group_combinations(group, k))
-    return total_combinations
+# 計算覆蓋設計
+def covering_design(v, k, t):
+    elements = list(range(1, v + 1))
+    covering_sets = set()
+    
+    for subset in itertools.combinations(elements, t):
+        found_combination = next(
+            (comb for comb in all_combinations if set(subset).issubset(comb)),
+            None
+        )
+        if found_combination:
+            covering_sets.add(found_combination)
+    
+    return list(covering_sets)
 
-# 生成購買的號碼組合，確保每個組合有6個號碼
-def generate_tickets(total_combinations, select_numbers=6):
-    tickets = []
-    used_numbers = set()
+# 生成覆蓋設計
+covering_sets = covering_design(v, k, t)
 
-    # 隨機打亂總組合以確保隨機性
-    random.shuffle(total_combinations)
-
-    for combination in total_combinations:
-        current_ticket = set(combination)
-        if len(current_ticket) == select_numbers:
-            tickets.append(sorted(current_ticket))
-        else:
-            while len(current_ticket) < select_numbers:
-                additional_combination = next(
-                    (c for c in total_combinations if not current_ticket.intersection(c)),
-                    None
-                )
-                if additional_combination:
-                    current_ticket.update(additional_combination)
-                else:
-                    break
-            tickets.append(sorted(current_ticket))
-
-    # 確保每個購買組合只有6個號碼
-    final_tickets = []
-    for ticket in tickets:
-        if len(ticket) > select_numbers:
-            final_tickets.append(sorted(ticket[:select_numbers]))
-        else:
-            final_tickets.append(ticket)
-
-    return final_tickets
-
-# 至少中3個號碼的組合
-total_combinations_3 = calculate_total_combinations(groups, 3)
-tickets_3 = generate_tickets(total_combinations_3)
-
-# 隨機打亂購買的號碼組合以確保隨機性
-random.shuffle(tickets_3)
+# 隨機打亂覆蓋設計以確保隨機性
+random.shuffle(covering_sets)
 
 # 取前42個購買組合
-final_tickets_42 = tickets_3[:42]
+final_tickets_42 = covering_sets[:42]
 
 # 顯示前5個結果以供檢查
 for i, ticket in enumerate(final_tickets_42[:5], 1):
-    print(f"Ticket {i}: {ticket}")
+    print(f"Ticket {i}: {sorted(ticket)}")
 
 # 確認總購買組合數
 len(final_tickets_42)
